@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive DM Toolkit: Ravnica Oblex Deception</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A tab-based SPA dashboard design was chosen to provide Dungeon Masters (DMs) with rapid, non-linear access to critical session components. The structure includes 'Overview', 'The Oblex', 'Encounters', 'DM Toolkit', and the new 'Player Briefing' tabs. This is superior to a linear document as a DM in a live game needs to jump between monster stats, room descriptions, and general rules fluidly. The 'Encounters' section uses an interactive card layout and a summary chart, allowing the DM to select a room and view its details instantly, which is the primary user flow during gameplay. This task-oriented design directly supports the DM's workflow. The 'Player Briefing' tab provides critical, secret information to compromised players in a discrete, easily accessible format. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Oblex Abilities -> Goal: Inform/Organize -> Viz/Presentation: Interactive 'stat block' with clickable ability details. -> Interaction: Click-to-expand details on Simulacrum/Eat Memories. -> Justification: Keeps the main view clean while providing deep info on demand. -> Library/Method: HTML/CSS/JS.
+        - Report Info: 7 Sewer Rooms (Table 2) -> Goal: Compare/Navigate -> Viz/Presentation: Interactive cards and a horizontal bar chart. -> Interaction: Clicking a card or chart bar displays that room's full details. The chart visualizes the escalating psychological tension of the encounters. -> Justification: Provides both a quick visual summary and a direct navigation path. -> Library/Method: Chart.js for the canvas-based chart.
+        - Report Info: High-level play advice -> Goal: Inform -> Viz/Presentation: Collapsible accordion sections. -> Interaction: Click-to-expand. -> Justification: Hides dense text blocks until needed, reducing clutter. -> Library/Method: HTML/CSS/JS.
+        - Report Info: Player Simulacrum Rules -> Goal: Inform (secretly) -> Viz/Presentation: Dedicated tab with clear, concise text sections. -> Interaction: None (read-only briefing). -> Justification: Provides a private, structured briefing for players whose characters are replaced, ensuring they understand their new role and limitations without revealing it to others. -> Library/Method: HTML/CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .tab.active {
+        border-color: #4f46e5;
+        color: #4f46e5;
+        background-color: #eef2ff;
+      }
+      .content-section {
+        display: none;
+      }
+      .content-section.active {
+        display: block;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 400px;
+        max-height: 50vh;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <div class="container mx-auto p-4 md:p-8">
+      <header class="text-center mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-slate-900">
+          The Oblex Deception
+        </h1>
+        <p class="text-lg text-slate-600 mt-2">
+          An Interactive DM Toolkit for a Ravnica Sewer Infiltration
+        </p>
+      </header>
+
+      <nav
+        class="mb-8 flex flex-wrap justify-center gap-2 md:gap-4 border-b border-slate-200 pb-4"
+      >
+        <button
+          data-tab="overview"
+          class="tab text-sm md:text-base font-semibold py-2 px-4 border-b-2 border-transparent hover:border-indigo-500 hover:text-indigo-500 transition-colors duration-300"
+        >
+          Overview
+        </button>
+        <button
+          data-tab="oblex"
+          class="tab text-sm md:text-base font-semibold py-2 px-4 border-b-2 border-transparent hover:border-indigo-500 hover:text-indigo-500 transition-colors duration-300"
+        >
+          The Elder Oblex
+        </button>
+        <button
+          data-tab="encounters"
+          class="tab text-sm md:text-base font-semibold py-2 px-4 border-b-2 border-transparent hover:border-indigo-500 hover:text-indigo-500 transition-colors duration-300"
+        >
+          Encounters
+        </button>
+        <button
+          data-tab="toolkit"
+          class="tab text-sm md:text-base font-semibold py-2 px-4 border-b-2 border-transparent hover:border-indigo-500 hover:text-indigo-500 transition-colors duration-300"
+        >
+          DM Toolkit
+        </button>
+        <button
+          data-tab="player-briefing"
+          class="tab text-sm md:text-base font-semibold py-2 px-4 border-b-2 border-transparent hover:border-indigo-500 hover:text-indigo-500 transition-colors duration-300"
+        >
+          Player Briefing (Confidential)
+        </button>
+      </nav>
+
+      <main>
+        <section id="overview" class="content-section">
+          <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900">
+              Session Narrative Arc
+            </h2>
+            <p class="mb-4 text-slate-700">
+              This session is a slow-burn psychological thriller designed to
+              build paranoia. The adventure progresses through three distinct
+              phases: Separation, Deception, and finally, Confrontation. The
+              party will face challenges that subtly encourage them to split up,
+              creating opportunities for the Elder Oblex to strike.
+            </p>
+            <div class="grid md:grid-cols-3 gap-4 text-center">
+              <div class="bg-slate-100 p-4 rounded-md">
+                <h3 class="font-bold text-indigo-600">1. Separation</h3>
+                <p class="text-sm text-slate-600">
+                  Environmental puzzles and hazards force the party to make
+                  tactical decisions that lead to natural, player-driven
+                  separation.
+                </p>
+              </div>
+              <div class="bg-slate-100 p-4 rounded-md">
+                <h3 class="font-bold text-indigo-600">2. Deception</h3>
+                <p class="text-sm text-slate-600">
+                  The Oblex uses its abilities to replace isolated PCs, creating
+                  clones that sow discord and sabotage the party from within.
+                </p>
+              </div>
+              <div class="bg-slate-100 p-4 rounded-md">
+                <h3 class="font-bold text-indigo-600">3. Confrontation</h3>
+                <p class="text-sm text-slate-600">
+                  The session culminates in a battle where players must fight
+                  the Oblex and its simulacra, including clones of their own
+                  allies.
+                </p>
+              </div>
+            </div>
+            <h2 class="text-2xl font-bold mt-6 mb-4 text-slate-900">
+              Setting the Stage
+            </h2>
+            <p class="text-slate-700">
+              Emphasize the *why* of this mission. The party isn't just taking a
+              shortcut; they are strategically avoiding powerful, omnipresent
+              threats on the surface (e.g., guild checkpoints, magical
+              surveillance). This high-stakes context justifies the dangerous
+              subterranean journey and makes the sewer system a formidable
+              challenge in itself, testing the party's wits and cohesion more
+              than their raw power.
+            </p>
+          </div>
+        </section>
+
+        <section id="oblex" class="content-section">
+          <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900">
+              Antagonist Profile: The Elder Oblex
+            </h2>
+            <p class="mb-6 text-slate-700">
+              The Elder Oblex is not a creature of brute force, but a master of
+              psychological warfare. Its low CR (10) is deceptive; its true
+              power lies in its formidable intelligence (INT 22) and its ability
+              to turn the party against itself. Your goal is to foster an
+              atmosphere of deep paranoia.
+            </p>
+
+            <div
+              class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg"
+            >
+              <div class="grid md:grid-cols-3 gap-4 text-slate-700 text-sm">
+                <div><strong>Challenge Rating:</strong> 10</div>
+                <div><strong>Intelligence:</strong> 22 (+6)</div>
+                <div><strong>Hit Points:</strong> 115</div>
+                <div><strong>Special:</strong> Amorphous</div>
+                <div><strong>Senses:</strong> Blindsight 60 ft.</div>
+                <div><strong>Skills:</strong> Deception +10</div>
+              </div>
+            </div>
+
+            <h3 class="text-xl font-bold mt-6 mb-4 text-slate-900">
+              Key Abilities & DM Rulings
+            </h3>
+            <div class="space-y-4">
+              <div
+                class="border border-slate-200 rounded-lg p-4 cursor-pointer hover:bg-slate-50"
+                onclick="toggleDetail('simulacrum-detail')"
+              >
+                <h4 class="font-semibold text-indigo-700">Simulacrum</h4>
+                <div
+                  id="simulacrum-detail"
+                  class="text-sm text-slate-600 mt-2 hidden"
+                >
+                  <p>
+                    <strong>Official:</strong> Can create up to 13 tethered
+                    copies of creatures it has consumed. Tether stretches 120 ft
+                    and is immune to damage but severed by 1-inch thick physical
+                    obstructions.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="border border-slate-200 rounded-lg p-4 cursor-pointer hover:bg-slate-50"
+                onclick="toggleDetail('memories-detail')"
+              >
+                <h4 class="font-semibold text-indigo-700">Eat Memories</h4>
+                <div
+                  id="memories-detail"
+                  class="text-sm text-slate-600 mt-2 hidden"
+                >
+                  <p>
+                    <strong>Official:</strong> Target becomes memory drained
+                    (disadvantage on some checks) until a long rest or a *Heal*
+                    / *Greater Restoration* spell.
+                  </p>
+                  <p class="mt-2 font-bold">
+                    <strong>DM RULING (CRITICAL):</strong> The target does NOT
+                    lose their memories; the Oblex only gains access to them.
+                    The player whose character is replaced retains full
+                    knowledge but must roleplay being controlled by the Oblex,
+                    using their memories as a tool for deception. This maintains
+                    player agency.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="border border-slate-200 rounded-lg p-4 cursor-pointer hover:bg-slate-50"
+                onclick="toggleDetail('tether-detail')"
+              >
+                <h4 class="font-semibold text-indigo-700">
+                  Sulfurous Impersonation & Tether
+                </h4>
+                <div
+                  id="tether-detail"
+                  class="text-sm text-slate-600 mt-2 hidden"
+                >
+                  <p>
+                    <strong>Official:</strong> A slimy strand connects each
+                    simulacrum to the main Oblex body, stretching up to 120 ft.
+                    It's immune to damage but is severed if there is no opening
+                    at least 1 inch wide between the Oblex and the simulacrum.
+                  </p>
+                  <p class="mt-2 font-bold">
+                    <strong>DM RULING (CRITICAL):</strong> The tether is a
+                    physical constraint. The Oblex must position its main body
+                    strategically to keep its simulacra within range. Forcing a
+                    heavy door closed or creating a rockfall between a clone and
+                    the Oblex's hiding spot will destroy the clone. This makes
+                    environmental control a key player strategy.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="encounters" class="content-section">
+          <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-2xl font-bold mb-2 text-slate-900">
+              Encounter Catalogue
+            </h2>
+            <p class="mb-6 text-slate-700">
+              The following encounters are designed to methodically separate the
+              party and build suspense. Click on any room card or its
+              corresponding bar in the chart to view detailed information.
+            </p>
+
+            <div class="mb-8">
+              <h3 class="text-xl font-bold text-center mb-2 text-slate-900">
+                Session Pacing: Psychological Threat Level
+              </h3>
+              <div class="chart-container">
+                <canvas id="encounterChart"></canvas>
+              </div>
+            </div>
+
+            <div
+              id="encounter-grid"
+              class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
+            ></div>
+          </div>
+
+          <div
+            id="encounter-modal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4"
+          >
+            <div
+              id="modal-content"
+              class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div class="flex justify-between items-center mb-4">
+                <h3
+                  id="modal-title"
+                  class="text-2xl font-bold text-slate-900"
+                ></h3>
+                <button
+                  onclick="closeModal()"
+                  class="text-slate-500 hover:text-slate-800"
+                >
+                  &times;
+                </button>
+              </div>
+              <div id="modal-body" class="text-slate-700 space-y-4"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="toolkit" class="content-section">
+          <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900">
+              Dungeon Master's Toolkit
+            </h2>
+            <p class="mb-6 text-slate-700">
+              Advice for running a high-level psychological horror session.
+            </p>
+
+            <div class="space-y-4">
+              <div class="border border-slate-200 rounded-lg">
+                <button
+                  onclick="toggleDetail('toolkit-highlevel')"
+                  class="w-full text-left p-4 font-semibold text-indigo-700 flex justify-between items-center"
+                >
+                  <span>Countering High-Level Abilities</span>
+                  <span>&#9662;</span>
+                </button>
+                <div
+                  id="toolkit-highlevel"
+                  class="p-4 pt-0 text-sm text-slate-600 hidden"
+                >
+                  <ul class="list-disc list-inside space-y-2">
+                    <li>
+                      <strong>Teleportation:</strong> The sewers are an unknown,
+                      shifting labyrinth. Teleporting is risky, with a high
+                      chance of mishap or landing in an even more dangerous,
+                      sealed-off area.
+                    </li>
+                    <li>
+                      <strong>True Seeing:</strong> This is a direct counter.
+                      The Oblex is intelligent. It will not reveal its true
+                      nature until a target is isolated and it's confident it
+                      won't be exposed to the whole group. It prioritizes
+                      stealth and ambush over direct confrontation.
+                    </li>
+                    <li>
+                      <strong>Scrying:</strong> The chaotic magical nature of
+                      the sewer, thick stone, and lead-lined pipes can block
+                      scrying attempts or provide distorted, useless
+                      information.
+                    </li>
+                    <li>
+                      <strong>Area of Effect Spells:</strong> Many passages are
+                      tight, filled with flammable gas, or structurally
+                      unstable. Using large AoE spells can be as dangerous to
+                      the party as to any foe.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="border border-slate-200 rounded-lg">
+                <button
+                  onclick="toggleDetail('toolkit-pvp')"
+                  class="w-full text-left p-4 font-semibold text-indigo-700 flex justify-between items-center"
+                >
+                  <span>Managing Pseudo-PvP & Player Clones</span>
+                  <span>&#9662;</span>
+                </button>
+                <div
+                  id="toolkit-pvp"
+                  class="p-4 pt-0 text-sm text-slate-600 hidden"
+                >
+                  <p class="mb-2">
+                    When a player's character is replaced by an Oblex clone,
+                    it's crucial to handle it delicately to keep the player
+                    engaged.
+                  </p>
+                  <ul class="list-disc list-inside space-y-2">
+                    <li>
+                      <strong>Communicate Privately:</strong> Pass a note or
+                      send a private message to the player. Explain that their
+                      character has been replaced.
+                    </li>
+                    <li>
+                      <strong>Clarify the Rules:</strong> Tell them they still
+                      have all their character's memories and should roleplay
+                      normally, but with a new, secret goal: to help the Oblex
+                      isolate and replace others. CRITICALLY, inform them they
+                      can no longer use their class features or spells. Their
+                      available actions are now the Oblex's actions.
+                    </li>
+                    <li>
+                      <strong>Empower the Player:</strong> Frame this as a fun,
+                      new challenge. They are now an inside agent, a master of
+                      deception. Their goal is to subtly manipulate their
+                      friends without getting caught.
+                    </li>
+                    <li>
+                      <strong>The "Tell":</strong> The inability to use class
+                      features is the puzzle for the other players to solve. A
+                      Fighter not using Action Surge or a Cleric not casting a
+                      healing spell should raise suspicion over time.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="player-briefing" class="content-section">
+          <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-2xl font-bold mb-4 text-slate-900">
+              Player Briefing: Your New Reality
+            </h2>
+            <p class="mb-6 text-slate-700">
+              Your character has been replaced by an Elder Oblex simulacrum. You
+              now control a perfect, slimy copy of your former self, imbued with
+              your memories and personality, but serving the Oblex's will. Your
+              goal is to subtly aid the Oblex in its deception and to help it
+              consume more victims.
+            </p>
+
+            <h2 class="text-2xl font-bold mb-4 text-slate-900">Your Goal:</h2>
+            <p class="mb-6 text-slate-700">
+              Your primary objective is to sow discord, misdirect the party, and
+              help the Oblex isolate and consume more victims. Use your
+              character's memories and personality to be convincing.
+            </p>
+
+            <h3 class="text-xl font-bold mb-3 text-slate-900">
+              Simulacrum Rules & Limitations
+            </h3>
+            <div
+              class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mb-6"
+            >
+              <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li>
+                  <strong>No Class Abilities:</strong> You cannot use any of
+                  your character's class features (e.g., Action Surge, Sneak
+                  Attack, Channel Divinity, Ki points, Bardic Inspiration, Wild
+                  Shape, Rage, etc.).
+                </li>
+                <li>
+                  <strong>Intelligent Infiltration:</strong> Your int is now
+                  raised to be a minimum of 22.
+                </li>
+                <li>
+                  <strong>Magic Items:</strong> You can only use magic items
+                  that *do not* require attunement. Attuned items cease to
+                  function for you.
+                </li>
+                <li>
+                  <strong>Spells:</strong> You can cast spells of 5th level or
+                  lower that your character knew, but these spells are now
+                  powered by the Oblex's psionics.
+                </li>
+                <li>
+                  <strong>Immunities:</strong> You gain immunity to Psychic,
+                  Acid, and Poison damage.
+                </li>
+                <li>
+                  <strong>Shared HP:</strong> Your simulacrum shares the Oblex's
+                  main hit point pool. Damage dealt to you reduces the Oblex's
+                  total health. The DM will track this.
+                </li>
+              </ul>
+            </div>
+
+            <h3 class="text-xl font-bold mb-3 text-slate-900">
+              The Big Reveal
+            </h3>
+            <p class="mb-4 text-slate-700">
+              When the Dungeon Master says the phrase:
+            </p>
+            <div
+              class="bg-red-100 border-l-4 border-red-500 p-4 rounded-r-lg text-center text-xl font-bold text-red-800 mb-6"
+            >
+              "I am the Necroplasm"
+            </div>
+            <p class="text-slate-700">
+              You, as a simulacrum, should immediately respond by chanting in
+              unison with any other simulacra:
+            </p>
+            <div
+              class="bg-red-100 border-l-4 border-red-500 p-4 rounded-r-lg text-center text-xl font-bold text-red-800"
+            >
+              "We are the Necroplasm"
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const encounterData = [
+        {
+          id: 1,
+          name: "The Confluence of Currents",
+          challenge: "Environmental Navigation, Decision-Making",
+          threat: 2,
+          readAloud: `You stand in a vast, echoing subterranean chamber where several major sewer tunnels converge. Ahead, the primary path is completely blocked by a massive collapse of rock and debris, seemingly too unstable to force. From here, you see several smaller, less obvious pipes and passages branching off. One path is partially submerged in fast-flowing, corrosive waste, another is a tight, claustrophobic crawl space, and a third leads precariously upwards into a crumbling ventilation shaft. The air is thick with noxious, eye-watering fumes.`,
+          description: `This vast chamber features a massive, magically reinforced collapse blocking the main path. The air is thick with noxious fumes (CON saves vs. minor debuffs). Multiple smaller, hazardous tunnels branch off, forcing the party to split based on character strengths (e.g., a corrosive waste pipe, a tight crawlspace, an unstable ventilation shaft).`,
+          separation:
+            "The main blockage is too difficult to clear quickly or safely, making the hazardous side-tunnels an appealing, strategic choice that naturally divides the group.",
+          oblex:
+            "The Oblex observes from a hidden location, identifying vulnerable targets. It might send a subtle, non-threatening simulacrum (like a rat) to scout the party's composition and abilities.",
+        },
+        {
+          id: 2,
+          name: "The Whispering Gallery",
+          challenge: "Psychological, Perception, Wisdom Saves",
+          threat: 4,
+          readAloud: `The tunnel stretches long and unnervingly quiet before you, save for faint, distorted whispers carried on the stagnant air. They seem to come from everywhere and nowhere at once, just at the edge of comprehension. Numerous side passages branch off, some appearing to lead to obvious dead ends, while others promise more direct but often narrow and less-traveled routes.`,
+          description:
+            "A long, unnervingly quiet tunnel where distorted whispers echo. The whispers are psychic projections from the Oblex, tailored to individual PCs' fears or curiosities, luring them toward illusory walls or isolated side passages.",
+          separation:
+            "Characters may split off to investigate the source of whispers targeting them specifically, or become disoriented by the confusing acoustics and illusions, taking different paths.",
+          oblex:
+            "The Oblex uses its innate Psionics from a safe distance (within 120ft) to generate the illusions. It's testing the party's mental fortitude and gathering psychological data on them.",
+        },
+        {
+          id: 3,
+          name: "The Grasping Mire",
+          challenge: "Movement, Environmental Hazard",
+          threat: 6,
+          readAloud: `The solid floor gives way here, replaced by a deep, viscous mire of sewage and refuse. Scattered, unstable platforms and precarious, grime-slicked pipes offer the only apparent way across. You see tendrils of sludge occasionally rise and fall within the muck. The air is thick and heavy, with a faint, unsettling smell.`,
+          description: `The floor is a deep, viscous mire of sewage. Unstable platforms and slick pipes are the only way across. Grasping sludge tendrils attempt to pull characters into the muck. The air is thick with flammable methane gas, making fire spells extremely risky.`,
+          separation:
+            "The difficult terrain naturally slows and separates the party. A tendril can pull a character into a hidden alcove, momentarily isolating them from the group's sight.",
+          oblex:
+            "An Oblex simulacrum disguised as a trapped victim calls for help, luring a character into a vulnerable position for an 'Eat Memories' attempt. The main body hides within the mire itself.",
+        },
+        {
+          id: 4,
+          name: "The Mimic's Den",
+          challenge: "Investigation, Deception Detection",
+          threat: 8,
+          readAloud: `You enter a series of small, interconnected storage rooms or maintenance tunnels. They appear long abandoned, filled with discarded equipment, empty crates, and forgotten tools. The air is stale and heavy, and an oppressive silence hangs in the cramped spaces. In one corner, you notice a seemingly innocuous object—perhaps a dusty chest, a pile of old rags, or a forgotten backpack.`,
+          description:
+            "A series of small, cluttered maintenance rooms. One contains an innocuous object (a chest, a pile of rags) which is actually a perfectly disguised Oblex simulacrum, waiting patiently.",
+          separation:
+            "A single curious or thorough character will likely investigate one of the small, cramped rooms alone, separating them from the party's line of sight.",
+          oblex:
+            "This is the prime opportunity for the first replacement. Once a PC is isolated, the simulacrum reveals itself, grapples, and uses 'Eat Memories'. A new clone of the PC is created, and it returns to the group.",
+        },
+        {
+          id: 5,
+          name: "The Collapsing Conduit",
+          challenge: "Time Pressure, Environmental Hazard",
+          threat: 7,
+          readAloud: `The passage ahead is a long, narrow conduit showing severe structural instability. Cracks spiderweb across the ceiling and walls, and ominous groaning sounds echo through the passage. Periodically, the entire conduit shakes violently, sending small showers of debris down. The ground is uneven, made treacherous by broken pipes and slippery, shifting rubble.`,
+          description:
+            "A long, structurally unstable conduit. The party must make frequent DEX saves to avoid falling debris. The constant threat of collapse forces rapid, individual movement rather than careful group progression.",
+          separation:
+            "A tremor can cause a section of the path to collapse, physically separating the party. Faster characters might dash ahead, leaving slower ones behind.",
+          oblex:
+            "An already-replaced PC can 'accidentally' cause a collapse to isolate a target. The chaos provides cover for the Oblex to move its main body or attempt another 'Eat Memories' attack.",
+        },
+        {
+          id: 6,
+          name: "The Forgotten Guild Vault",
+          challenge: "Puzzle, Social Deduction",
+          threat: 9,
+          readAloud: `You arrive in an expansive, circular chamber that clearly once served as a guild vault, now partially submerged in murky water. Intricate, magically warded mechanisms, rusted levers, and arcane symbols adorn the walls, hinting at a complex locking system. Several smaller, sealed alcoves or side chambers branch off, some requiring specific magical keys or intricate puzzle solutions to open. The air is thick with the scent of ozone and stale magic.`,
+          description: `A circular chamber with complex, multi-stage magical locks and puzzles. Solving it requires divided attention and specialized skills, encouraging the party to work on different mechanisms simultaneously.`,
+          separation:
+            "The puzzle's design requires characters to be in different parts of the room, focusing on individual tasks, which creates social and physical distance.",
+          oblex:
+            "The Oblex-controlled PC(s) actively engage in sabotage: offering misleading advice, misdirecting efforts, 'accidentally' triggering minor traps, and sowing distrust among the real party members.",
+        },
+        {
+          id: 7,
+          name: "The Oblex's Lair",
+          challenge: "Combat, Pseudo-PvP, Deduction",
+          threat: 10,
+          readAloud: `The passage opens into a grotesque, pulsating chamber. The walls are slick with a viscous, translucent slime, and the air is thick with a cloying, sweet-sickly scent. Scattered throughout the chamber are desiccated husks of what appear to be past victims, their forms perfectly preserved but empty.`,
+          description: `The final confrontation takes place in a grotesque, pulsating chamber. The main Oblex is hidden, camouflaged within the environment. Numerous simulacra are present, including perfect clones of the replaced PCs.`,
+          separation:
+            "The final battle is the culmination of the separation. The party is literally divided between real members and Oblex clones.",
+          oblex:
+            "The Oblex fights using its PC clones, who use their stolen memories of party tactics against them. The challenge is for the real PCs to identify the clones (by their lack of class features) and find the true Oblex body, all while under attack from their 'allies'.",
+        },
+      ];
+
+      // Function to activate a tab
+      function activateTab(tabId) {
+        const tabs = document.querySelectorAll(".tab");
+        const contentSections = document.querySelectorAll(".content-section");
+
+        tabs.forEach((t) => t.classList.remove("active"));
+        contentSections.forEach((section) =>
+          section.classList.remove("active")
+        );
+
+        const targetTab = document.querySelector(`[data-tab="${tabId}"]`);
+        const targetSection = document.getElementById(tabId);
+
+        if (targetTab && targetSection) {
+          targetTab.classList.add("active");
+          targetSection.classList.add("active");
+        } else {
+          // Fallback to overview if hash is invalid or missing
+          document
+            .querySelector('[data-tab="overview"]')
+            .classList.add("active");
+          document.getElementById("overview").classList.add("active");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const tabs = document.querySelectorAll(".tab");
+        const encounterGrid = document.getElementById("encounter-grid");
+
+        // Handle initial load based on URL hash
+        const initialHash = window.location.hash.substring(1); // Remove '#'
+        activateTab(initialHash || "overview"); // Default to 'overview' if no hash
+
+        // Add click listeners for tabs
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            const targetId = tab.dataset.tab;
+            window.location.hash = targetId; // Update URL hash
+            activateTab(targetId); // Activate tab
+          });
+        });
+
+        // Populate encounter grid
+        encounterData.forEach((room) => {
+          const card = document.createElement("div");
+          card.className =
+            "bg-slate-100 p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-md hover:scale-105 transition-transform duration-300";
+          card.innerHTML = `
+            <h4 class="font-bold text-slate-800">${room.id}. ${room.name}</h4>
+            <p class="text-sm text-indigo-600 font-medium">${room.challenge}</p>
+        `;
+          card.addEventListener("click", () => showModal(room.id));
+          encounterGrid.appendChild(card);
+        });
+
+        renderChart();
+
+        // Listen for hash changes (e.g., browser back/forward buttons)
+        window.onhashchange = () => {
+          const newHash = window.location.hash.substring(1);
+          activateTab(newHash || "overview");
+        };
+      });
+
+      function toggleDetail(id) {
+        const detail = document.getElementById(id);
+        detail.classList.toggle("hidden");
+      }
+
+      function showModal(roomId) {
+        const room = encounterData.find((r) => r.id === roomId);
+        if (!room) return;
+
+        document.getElementById(
+          "modal-title"
+        ).innerText = `${room.id}. ${room.name}`;
+        document.getElementById("modal-body").innerHTML = `
+        <div class="space-y-3">
+            <div class="bg-green-50 p-3 rounded-md border-l-4 border-green-400">
+                <h5 class="font-semibold text-green-800">Read Aloud to Players</h5>
+                <p>${room.readAloud}</p>
+            </div>
+            <div><strong class="text-slate-900">Primary Challenge:</strong> ${room.challenge}</div>
+            <div class="bg-blue-50 p-3 rounded-md border-l-4 border-blue-400">
+                <h5 class="font-semibold text-blue-800">DM Description</h5>
+                <p>${room.description}</p>
+            </div>
+            <div class="bg-red-50 p-3 rounded-md border-l-4 border-red-400">
+                <h5 class="font-semibold text-red-800">Separation Mechanic</h5>
+                <p>${room.separation}</p>
+            </div>
+            <div class="bg-purple-50 p-3 rounded-md border-l-4 border-purple-400">
+                <h5 class="font-semibold text-purple-800">Oblex Integration</h5>
+                <p>${room.oblex}</p>
+            </div>
+        </div>
+    `;
+        document.getElementById("encounter-modal").classList.remove("hidden");
+        document.getElementById("encounter-modal").classList.add("flex");
+      }
+
+      function closeModal() {
+        document.getElementById("encounter-modal").classList.add("hidden");
+        document.getElementById("encounter-modal").classList.remove("flex");
+      }
+
+      function renderChart() {
+        const ctx = document.getElementById("encounterChart").getContext("2d");
+        const chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: encounterData.map((r) => `${r.id}. ${r.name}`),
+            datasets: [
+              {
+                label: "Psychological Threat Level",
+                data: encounterData.map((r) => r.threat),
+                backgroundColor: "rgba(79, 70, 229, 0.6)",
+                borderColor: "rgba(79, 70, 229, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Threat Level (Arbitrary Units)",
+                },
+              },
+              y: {
+                ticks: {
+                  autoSkip: false,
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    let label = context.dataset.label || "";
+                    if (label) {
+                      label += ": ";
+                    }
+                    if (context.parsed.x !== null) {
+                      label += context.parsed.x;
+                    }
+                    return label;
+                  },
+                },
+              },
+            },
+            onClick: (event, elements) => {
+              if (elements.length > 0) {
+                const chartElement = elements[0];
+                const roomId = chartElement.index + 1;
+                showModal(roomId);
+              }
+            },
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
